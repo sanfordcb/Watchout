@@ -2,6 +2,7 @@
 
 // start slingin' some d3 here.
 var currentScore = 0;
+var bestScore = $('#bestScore').text();
 var height = 500;
 var width = 960;
 var collision = 0;
@@ -82,7 +83,7 @@ var floatingAsteroids = function(){
   asteroids
     .transition()
     .ease('linear', 1, 0.75)
-    .duration(3000)
+    .duration(1700)
     .attr('x', function(d){ return randomize(d.x)})
     .attr('y', function(d){ return randomize(d.y)})
     .each('end', floatingAsteroids);
@@ -92,24 +93,64 @@ floatingAsteroids();
 
    // AH HA!
 var collisionChecker = false;
-              setInterval(function(){
+              
+var gaveOverStop = function() {
+  clearInterval(gameOver);
+};
+setInterval(function(){
                 enemies
                   .transition()
                   .duration(750)
                   .attr('cx', function(d) { return randomize(width)})
                   .attr('cy', function(d) { return randomize(height)});
                 if(collisionChecker){ //checkCollision()
-                    collision++;
+                  collision++;
                   d3.selectAll('.collisionNum')
                     .text(collision)
                 }
-                // collisionChecker = collisionChecker || checkCollision();
-                collisionChecker = false;
                         $('svg').removeClass('hit');
                         $('.draggableCircle').removeClass('blink hurt')
 
-              },1500)
+                if(asteroidCheck) {
+                  $(enemies[0].shift()).remove();
+                  console.log('remove!');
+                }
+                collisionChecker = false;
+                 asteroidCheck= false;
 
+                 if(!enemies[0].length) {
+                  // gameOverStop();
+                  var finalScore = currentScore;
+                  $('.currentScore').addClass('finalScore').removeClass('currentScore');
+                  d3.selectAll('.finalScore').text(finalScore);
+                 } 
+              },1500)
+  
+
+
+
+
+var asteroidCheck = false;
+
+var checkAsteroids = function(){
+  var result = false;
+  asteroids[0].forEach(function(asteroid, i){
+    var x = asteroid.x.animVal.value - circle.attr('cx');
+    var y = asteroid.y.animVal.value - circle.attr('cy');
+
+    var hypotenuse = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    if(hypotenuse < (asteroid.width.animVal.value/2 + Number(circle.attr('r')))) {    
+      $(asteroid).remove();
+      asteroids[0].splice(i, 1);
+
+      console.log(hypotenuse, asteroid.width.animVal.value/2 + Number(circle.attr('r')))
+      console.log('score');
+      currentScore += 100;
+      result = true;
+    }
+    });
+    return result;
+}
 var checkCollision = function(){
   var result = false;
   enemies[0].forEach(function(enemy) {
@@ -122,8 +163,8 @@ var checkCollision = function(){
       // $('svg').addClass('hit');
       $('.draggableCircle').addClass('hurt blink');
       result = true;
-      var currentBest = $('#bestScore').text();
-      if(currentBest<currentScore){
+
+      if(bestScore<currentScore){
         d3.selectAll('#bestScore')
           .text(currentScore);
       } else {
@@ -137,15 +178,18 @@ var checkCollision = function(){
 
 // ends
 //adds 1 point every 100 ms
-setInterval(function(){
-collisionChecker = collisionChecker ||checkCollision();
-  
+var gameOver = setInterval(function(){
+  collisionChecker = collisionChecker ||checkCollision();
+  asteroidCheck = asteroidCheck || checkAsteroids();
 
-  d3.selectAll('.currentScore')
-    .text(currentScore);
-  currentScore++;
-  
-},100);
+    d3.selectAll('.currentScore')
+      .text(currentScore);
+      if(enemies[0].length){
+        currentScore++;
+      }
+    
+  },100);
+
 
 //jQuery section
 $(document).ready(function(){
@@ -155,4 +199,5 @@ $(document).ready(function(){
 
   
 });
+
 
