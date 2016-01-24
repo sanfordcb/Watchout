@@ -126,10 +126,6 @@ setInterval(function(){
                  } 
               },1500)
   
-
-
-
-
 var asteroidCheck = false;
 
 var checkAsteroids = function(){
@@ -189,7 +185,6 @@ var gameOver = setInterval(function(){
       }
     
   },100);
-
 
 //jQuery section
 $(document).ready(function(){
