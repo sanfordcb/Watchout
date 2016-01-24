@@ -3,3 +3,82 @@
 /* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
 
+svg {
+  background-image: url('lib/background.jpg');
+}
+
+.hit {
+  background-color: red;
+}
+
+.hurt{
+  color: red;
+}
+
+.blink {
+  animation: blink 0.1s steps(5, start) infinite;
+  -webkit-animation: blink 0.1s steps(5, start) infinite;
+}
+
+.draggableCircle {
+  background-color: steelblue;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+@-webkit-keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.asteroid {
+  /*fill: url(/#asteroid);*/
+  background-image: url('asteroid.png');
+}
+
+body {
+  background-color: black;
+}
+
+.high{
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  text-align: center;
+
+}
+
+.current{
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  text-align: center;
+
+}
+.collisions{
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  text-align: center;
+
+}
+
+#bestScore{
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  text-align: center;
+
+}
+
+.currentScore{
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  text-align: center;
+
+  } 
+.collisionNum{
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  text-align: center;
+}  

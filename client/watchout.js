@@ -4,29 +4,20 @@
 var currentScore = 0;
 var height = 500;
 var width = 960;
+var collision = 0;
 
 var svg = d3.select('body').append('svg')
           .attr('width', 960)
           .attr('height', 500)
+          .style('display', 'block')
+          .style('margin', '0 auto')
+          .style('border', '5px solid black');
+
 
 window.randomize = function(num){
   return Math.floor(Math.random()*num);
 }
 //draw an enemy in SVG
-// var Enemy = function(id) {
-//   this.id = id;
-//   this.class = 'enemies';
-//   this.cx = randomize(width);
-//   this.cy = randomize(height);
-//   this.r = 30;
-//   d3.select('svg').append('circle')
-//         .attr('id',this.id)
-//         .attr('class', this.class)
-//         .attr('cx', this.cx)
-//         .attr('cy', this.cy)
-//         .attr('r', this.r)
-//         .attr('fill', 'black');
-// }
 
 var enemyData = [];
 var makeEnemies = function(num) {
@@ -42,27 +33,6 @@ var makeEnemies = function(num) {
 
 makeEnemies(10);
 
-
-
-setInterval(function(){
-  var newCoordinates = [];
-  for(var i = 0; i < enemyData.length; i++){
-    newCoordinates.push({
-      cx: randomize(width),
-      cy: randomize(height)
-    });
-  }
-  // d3.selectAll("circle")
-  //       .data(newCoordinates)
-  //       .transition()
-  //       .attr('cx', function(d){return d.cx})
-  //       .attr('cy', function(d){return d.cy})
-  //       .duration(750);
-
-},3000)
-
-
-
 var drag = d3.behavior.drag()  
              .on('dragstart', function() { circle.style('fill', 'green'); })
              .on('drag', function() { 
@@ -71,64 +41,116 @@ var drag = d3.behavior.drag()
                 .attr('cy', d3.event.y); })
              .on('dragend', function() { circle.style('fill', 'steelblue'); });
 var circle = svg.selectAll('.draggableCircle')  
-                .data([{ x: randomize(width), y: randomize(height), r: 25 }])
-                .enter()
-                .append('svg:circle')
-                .attr('class', 'draggableCircle')
-                .attr('cx', function(d) { return d.x; })
-                .attr('cy', function(d) { return d.y; })
-                .attr('r', function(d) { return d.r; })
-                .call(drag)
-                .style('fill', 'steelblue');
+              .data([{ x: randomize(width), y: randomize(height), r: 25 }])
+              .enter()
+              .append('svg:circle')
+              .attr('class', 'draggableCircle')
+              .attr('cx', function(d) { return d.x; })
+              .attr('cy', function(d) { return d.y; })
+              .attr('r', function(d) { return d.r; })
+              .call(drag)
+              .style('fill', 'steelblue')
+              .style('cursor','pointer')
+              .style('stroke-width', '1em')
+              .style('stroke','gold');
+
+
 var enemies = svg.selectAll('.enemies')
+              .data(enemyData)
+              .enter()
+              .append('svg:circle')
+              .attr('cx', function(d){ return d.x})
+              .attr('cy', function(d){ return d.y})
+              .attr('r', 25)
+              .attr('class', 'enemies')
+              .style('fill', 'black')
+              .style('stroke-width', '1em')
+              .style('stroke','silver');
+
+var asteroids = svg.selectAll('image')
                 .data(enemyData)
                 .enter()
-                .append('svg:circle')
-                .attr('cx', function(d){ return d.x})
-                .attr('cy', function(d){ return d.y})
-                .attr('r', 25)
-                .style('fill','black')
+                .append('svg:image')
+                .attr('xlink:href', 'asteroid.png')
+                .attr('class','asteroid')
+                .attr('x', function(d){ return d.x})
+                .attr('y', function(d){ return d.y})
+                .attr('width', '50')
+                .attr('height', '50');
 
-                // AH HA!
-                setInterval(function(){
-                  enemies
-                    .transition()
-                    .attr('cx', function(d) { return randomize(width)})
-                    .attr('cy', function(d) { return randomize(height)})
-                    .duration(750);
-                },3000)
+var floatingAsteroids = function(){
+  asteroids
+    .transition()
+    .ease('linear', 1, 0.75)
+    .duration(3000)
+    .attr('x', function(d){ return randomize(d.x)})
+    .attr('y', function(d){ return randomize(d.y)})
+    .each('end', floatingAsteroids);
+}
+
+floatingAsteroids();
+
+   // AH HA!
+var collisionChecker = false;
+              setInterval(function(){
+                enemies
+                  .transition()
+                  .duration(750)
+                  .attr('cx', function(d) { return randomize(width)})
+                  .attr('cy', function(d) { return randomize(height)});
+                if(collisionChecker){ //checkCollision()
+                    collision++;
+                  d3.selectAll('.collisionNum')
+                    .text(collision)
+                }
+                // collisionChecker = collisionChecker || checkCollision();
+                collisionChecker = false;
+                        $('svg').removeClass('hit');
+                        $('.draggableCircle').removeClass('blink hurt')
+
+              },1500)
+
+var checkCollision = function(){
+  var result = false;
+  enemies[0].forEach(function(enemy) {
+    
+    var x = enemy.cx.animVal.value - circle.attr('cx'); // -500
+    var y = enemy.cy.animVal.value - circle.attr('cy'); // +500 
+
+    var hypotenuse = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    if(hypotenuse < (enemy.r.animVal.value + Number(circle.attr('r')))) {
+      // $('svg').addClass('hit');
+      $('.draggableCircle').addClass('hurt blink');
+      result = true;
+      var currentBest = $('#bestScore').text();
+      if(currentBest<currentScore){
+        d3.selectAll('#bestScore')
+          .text(currentScore);
+      } else {
+      }
+      currentScore = 0;
+    }
+  });
+  return result;
+}
 
 
 // ends
 //adds 1 point every 100 ms
 setInterval(function(){
+collisionChecker = collisionChecker ||checkCollision();
+  
+
   d3.selectAll('.currentScore')
     .text(currentScore);
   currentScore++;
   
 },100);
-    // d3.selectAll(".enemies").transition()
-    //     .attr('cx',200)
-    //     .attr('height',100)
-    //     .style('top',500)
-    //     .duration(750);
-
-
-
 
 //jQuery section
 $(document).ready(function(){
   // refactor the event to record best score.  
   $('body').on('click', function(){ 
-    var currentBest = $('#bestScore').text();
-    if(currentBest<currentScore){
-      console.log("best score!");
-      d3.selectAll('#bestScore')
-        .text(currentScore);
-    } else {
-      console.log("not best score");
-    }
-    currentScore = 0;
   });
 
   
