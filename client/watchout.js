@@ -116,14 +116,7 @@ setInterval(function(){
                   console.log('remove!');
                 }
                 collisionChecker = false;
-                 asteroidCheck= false;
-
-                 if(!enemies[0].length) {
-                  // gameOverStop();
-                  var finalScore = currentScore;
-                  $('.currentScore').addClass('finalScore').removeClass('currentScore');
-                  d3.selectAll('.finalScore').text(finalScore);
-                 } 
+                asteroidCheck= false;
               },1500)
   
 var asteroidCheck = false;
@@ -135,7 +128,7 @@ var checkAsteroids = function(){
     var y = asteroid.y.animVal.value - circle.attr('cy');
 
     var hypotenuse = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-    if(hypotenuse < (asteroid.width.animVal.value/2 + Number(circle.attr('r')))) {    
+    if(hypotenuse < (asteroid.width.animVal.value/1.5 + Number(circle.attr('r')))) {    
       $(asteroid).remove();
       asteroids[0].splice(i, 1);
 
@@ -156,43 +149,29 @@ var checkCollision = function(){
 
     var hypotenuse = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     if(hypotenuse < (enemy.r.animVal.value + Number(circle.attr('r')))) {
-      // $('svg').addClass('hit');
       $('.draggableCircle').addClass('hurt blink');
       result = true;
-
-      if(bestScore<currentScore){
-        d3.selectAll('#bestScore')
-          .text(currentScore);
-      } else {
-      }
       currentScore = 0;
     }
   });
   return result;
 }
-
-
 // ends
 //adds 1 point every 100 ms
 var gameOver = setInterval(function(){
   collisionChecker = collisionChecker ||checkCollision();
   asteroidCheck = asteroidCheck || checkAsteroids();
+   bestScore = currentScore > bestScore? currentScore:bestScore;
+   $('#bestScore').text(bestScore);
 
     d3.selectAll('.currentScore')
       .text(currentScore);
-      if(enemies[0].length){
+      if(enemies[0].length && asteroids[0].length){
         currentScore++;
+      } else {
+             $(enemies[0].shift()).remove();
+            $('.words').text("Game Over! Your Final Score is: "+currentScore);
       }
     
   },100);
-
-//jQuery section
-$(document).ready(function(){
-  // refactor the event to record best score.  
-  $('body').on('click', function(){ 
-  });
-
-  
-});
-
 
